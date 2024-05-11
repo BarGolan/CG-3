@@ -87,8 +87,8 @@ class SpotLight(LightSource):
 class Object3D:
     def set_material(self, ambient, diffuse, specular, shininess, reflection):
         self.ambient = ambient
-        self.diffuse = diffuse
-        self.specular = specular
+        self.diffuse = np.array(diffuse)
+        self.specular = np.array(specular)
         self.shininess = shininess
         self.reflection = reflection
 
@@ -105,7 +105,7 @@ class Ray:
         for object in objects:
             intersection = object.intersect(self)
             if intersection and intersection[0] > 0:
-                intersections += intersection
+                intersections.append(intersection)
         if not intersections:
             return None
         else:
@@ -127,7 +127,7 @@ class Plane(Object3D):
         else:
             return None
 
-    def get_normal(self, hit_point):
+    def get_normal(self, intersection_point):
         return self.normal
 
 
