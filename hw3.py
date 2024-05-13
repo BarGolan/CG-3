@@ -28,7 +28,7 @@ def render_scene(camera, ambient, lights, objects, screen_size, max_depth):
                 intersection_point = ray.origin + min_t * ray.direction
                 normal = normalize(
                     nearest_object.get_normal(intersection_point))
-                # hit_point += 1e-4 * normalize(normal)
+                intersection_point += 1e-4 * normal
 
                 color = get_color(ambient, objects, normal, lights,
                                   intersection_point, nearest_object, camera, 0, max_depth)
@@ -40,9 +40,8 @@ def render_scene(camera, ambient, lights, objects, screen_size, max_depth):
 
 
 def get_color(ambient, objects: list[Object3D], normal, lights: list[LightSource], intersection_point, nearest_object: Object3D, origin, level, max_depth):
-
-    if level > max_depth:
-        return
+    if level >= max_depth:
+        return np.zeros(3)
     material_emission = 0
     ambient = nearest_object.ambient * ambient
     total_light = ambient
@@ -64,9 +63,11 @@ def get_color(ambient, objects: list[Object3D], normal, lights: list[LightSource
 
     reflected_params = get_reflected_params(
         objects, intersection_point, origin=origin, normal=normal)
+
     if reflected_params:
         new_normal, new_intersection_point, new_nearest_obj = reflected_params
-        print(nearest_object.reflection)
+
+        new_intersection_point += 1e-4 * normalize(new_normal)
         total_light += nearest_object.reflection * \
             get_color(ambient, objects, new_normal, lights, new_intersection_point,
                       new_nearest_obj, intersection_point, level+1, max_depth)
@@ -82,12 +83,17 @@ def get_reflected_direction(ray_direction, normal):
     return normalize(reflected_direction)
 
 
-def is_intersection_point_blocked(
-    intersection_point, objects: list[Object3D], light: LightSource
-) -> bool:
+def is_intersection_point_blocked(intersection_point, objects: list[Object3D], light: LightSource) -> bool:
     shadow_ray = Ray(intersection_point, light.position - intersection_point)
     intersection = shadow_ray.nearest_intersected_object(objects)
-    return not intersection
+    if (intersection):
+        new_intersection_point = shadow_ray.find_point_with_given_t(
+            intersection[0])
+        distance_to_nearest_object = np.linalg.norm(
+            intersection_point - new_intersection_point)
+        return distance_to_nearest_object < light.get_distance_from_light(intersection_point)
+
+    return False
 
 
 def get_diffused_light(nearest_object: Object3D, normal, light_source: LightSource, intersection_point):

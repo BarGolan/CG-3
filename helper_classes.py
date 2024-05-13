@@ -112,6 +112,9 @@ class Ray:
             min_intersect = min(intersections, key=lambda x: x[0])
             return min_intersect
 
+    def find_point_with_given_t(self, t: int):
+        return self.origin + t * self.direction
+
 
 class Plane(Object3D):
     def __init__(self, normal, point):
