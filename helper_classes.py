@@ -25,22 +25,19 @@ class DirectionalLight(LightSource):
 
     def __init__(self, intensity, direction):
         super().__init__(intensity)
-        # TODO
+        self.direction = normalize(direction)
 
     # This function returns the ray that goes from the light source to a point
     def get_light_ray(self, intersection_point):
-        # TODO
-        return Ray()
+        return Ray(intersection_point, self.direction)
 
     # This function returns the distance from a point to the light source
     def get_distance_from_light(self, intersection):
-        # TODO
-        pass
+        return np.inf
 
     # This function returns the light intensity at a point
     def get_intensity(self, intersection):
-        # TODO
-        pass
+        return self.intensity
 
 
 class PointLight(LightSource):
@@ -149,16 +146,44 @@ class Triangle(Object3D):
         self.a = np.array(a)
         self.b = np.array(b)
         self.c = np.array(c)
-        self.normal = self.compute_normal()
+        self.normal = self.get_normal(0)
 
     # computes normal to the trainagle surface. Pay attention to its direction!
-    def compute_normal(self):
-        # TODO
-        pass
+    def get_normal(self,intersection_point):
+        AB = self.b - self.a
+        AC = self.c - self.a
+        return normalize(np.cross(AB, AC))
 
-    def intersect(self, ray: Ray):
-        # TODO
-        pass
+    # This function returns the intersection point of the ray with the triangle
+    def intersect(self, ray):
+        edge_ab = self.b - self.a
+        edge_ac = self.c - self.a
+
+        direction_cross_ac = np.cross(ray.direction, edge_ac)
+        denominator = np.dot(edge_ab, direction_cross_ac)
+
+        if -1e-3 < denominator < 1e-3:
+            return None
+
+        inverse_denominator = 1.0 / denominator
+        origin_to_a = ray.origin - self.a
+
+        alpha = inverse_denominator * np.dot(origin_to_a, direction_cross_ac)
+        if alpha < 0.0 or alpha > 1.0:
+            return None
+
+        origin_cross_ab = np.cross(origin_to_a, edge_ab)
+        beta = inverse_denominator * np.dot(ray.direction, origin_cross_ab)
+        if beta < 0.0 or alpha + beta > 1.0:
+            return None
+
+        t = inverse_denominator * np.dot(edge_ac, origin_cross_ab)
+        if t < 1e-3:
+            return None
+
+        return t, self
+            
+
 
 
 class Pyramid(Object3D):

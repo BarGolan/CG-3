@@ -84,9 +84,15 @@ def get_reflected_direction(ray_direction, normal):
 
 
 def is_intersection_point_blocked(intersection_point, objects: list[Object3D], light: LightSource) -> bool:
-    shadow_ray = Ray(intersection_point, light.position - intersection_point)
+    if isinstance(light, DirectionalLight):
+        shadow_ray = light.get_light_ray(intersection_point)
+    else: 
+        shadow_ray = Ray(intersection_point, light.position - intersection_point)
+
     intersection = shadow_ray.nearest_intersected_object(objects)
-    if (intersection):
+    if intersection:
+        if isinstance(light, DirectionalLight):
+            return True
         new_intersection_point = shadow_ray.find_point_with_given_t(
             intersection[0])
         distance_to_nearest_object = np.linalg.norm(
@@ -102,10 +108,8 @@ def get_diffused_light(nearest_object: Object3D, normal, light_source: LightSour
 
 def get_specular_light(nearest_object: Object3D, origin, intersection_point, light_source: LightSource, normal):
     V = normalize(origin - intersection_point)
-    R = get_reflected_direction(-light_source.get_light_ray(
-        intersection_point).direction, normal=normal)
-    specular_light = (nearest_object.specular * np.dot(V, R)
-                      ** nearest_object.shininess)
+    R = get_reflected_direction(-light_source.get_light_ray(intersection_point).direction, normal=normal)
+    specular_light = (nearest_object.specular * np.dot(V, R) ** nearest_object.shininess)
 
     return specular_light
 
