@@ -217,26 +217,25 @@ A /&&&&&&&&&&&&&&&&&&&&\ B &&&/ C
         self.v_list = v_list
         self.triangle_list = self.create_triangle_list()
 
-    def create_triangle_list(self):
+    def create_triangle_list(self) :
         l = []
         t_idx = [
                 [0, 1, 3],
                 [1, 2, 3],
                 [0, 3, 2],
-            [4, 1, 0],
-            [4, 2, 1],
-            [2, 4, 0]]
-        # TODO
+                [4, 1, 0],
+                [4, 2, 1],
+                [2, 4, 0]]
+        for idx in t_idx:
+            l.append(Triangle(self.v_list[idx[0]],self.v_list[idx[1]],self.v_list[idx[2]]))
         return l
 
     def apply_materials_to_triangles(self):
-        # TODO
-        pass
+        for triangle in self.triangle_list:
+            triangle.set_material(self.ambient,self.diffuse,self.specular,self.shininess,self.reflection)
 
     def intersect(self, ray: Ray):
-        # TODO
-        pass
-
+        return ray.nearest_intersected_object(self.triangle_list)
 
 class Sphere(Object3D):
     def __init__(self, center, radius: float):
@@ -244,5 +243,4 @@ class Sphere(Object3D):
         self.radius = radius
 
     def intersect(self, ray: Ray):
-        # TODO
         pass
