@@ -65,20 +65,25 @@ class PointLight(LightSource):
 class SpotLight(LightSource):
     def __init__(self, intensity, position, direction, kc, kl, kq):
         super().__init__(intensity)
-        # TODO
+        self.position = position
+        self.direction = direction
+        self.kc = kc
+        self.kl = kl
+        self.kq = kq
+
 
     # This function returns the ray that goes from the light source to a point
     def get_light_ray(self, intersection):
-        # TODO
-        pass
+        return Ray(intersection, normalize(self.position - intersection))
 
     def get_distance_from_light(self, intersection):
-        # TODO
-        pass
+        return np.linalg.norm(intersection - self.position)
 
     def get_intensity(self, intersection):
-        # TODO
-        pass
+        ray = normalize(intersection - self.position)
+        d = self.get_distance_from_light(intersection)
+        fatt = (self.kq * d**2) + (self.kl * d) + self.kc
+        return self.intensity * (np.dot(self.direction,normalize(ray)) / fatt)
 
 
 class Object3D:
@@ -243,4 +248,44 @@ class Sphere(Object3D):
         self.radius = radius
 
     def intersect(self, ray: Ray):
-        pass
+        # Step 1: Define variables
+        L = ray.origin - self.center
+        a = np.dot(ray.direction, ray.direction)
+        b = 2 * np.dot(ray.direction, L)
+        c = np.dot(L, L) - self.radius ** 2
+
+        # Step 2: Calculate the discriminant
+        discriminant = b ** 2 - 4 * a * c
+
+        # Step 3: Determine if there is an intersection based on the discriminant
+        if discriminant < 0:
+            return None  # No real roots; no intersection
+        elif discriminant == 0:
+            # One solution (tangent to the sphere)
+            t = -b / (2 * a)
+            if t < 0:
+                return None  # Intersection is behind the ray's origin
+            intersection_point = ray.origin + t * ray.direction
+            return intersection_point
+        else:
+            # Two solutions (the ray passes through the sphere)
+            sqrt_discriminant = np.sqrt(discriminant)
+            t1 = (-b - sqrt_discriminant) / (2 * a)
+            t2 = (-b + sqrt_discriminant) / (2 * a)
+
+            # Only consider intersections in the direction the ray is pointing
+            if t1 > 0 and t2 > 0:
+                t = min(t1, t2)
+            elif t1 > 0:
+                t = t1
+            elif t2 > 0:
+                t = t2
+            else:
+                return None  # Both intersections are behind the ray's origin
+            
+            intersection_point = ray.origin + t * ray.direction
+
+            return t, self 
+        
+    def get_normal(self,intersection_point):
+        return intersection_point - self.center

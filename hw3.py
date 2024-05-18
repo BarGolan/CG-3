@@ -38,7 +38,6 @@ def render_scene(camera, ambient, lights, objects, screen_size, max_depth):
 
     return image
 
-
 def get_color(ambient, objects: list[Object3D], normal, lights: list[LightSource], intersection_point, nearest_object: Object3D, origin, level, max_depth):
     if level >= max_depth:
         return np.zeros(3)
@@ -57,8 +56,8 @@ def get_color(ambient, objects: list[Object3D], normal, lights: list[LightSource
 
         specular_light = get_specular_light(
             nearest_object, origin, intersection_point, light_source, normal)
-
-        total_light += light_source.get_intensity(
+        
+        total_light = total_light.astype('float64') + light_source.get_intensity(
             intersection_point) * (diffuse_light + specular_light)
 
     reflected_params = get_reflected_params(
@@ -73,7 +72,6 @@ def get_color(ambient, objects: list[Object3D], normal, lights: list[LightSource
                       new_nearest_obj, intersection_point, level+1, max_depth)
 
     return total_light
-
 
 def get_reflected_direction(ray_direction, normal):
     L = ray_direction
