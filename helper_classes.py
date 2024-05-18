@@ -59,7 +59,7 @@ class PointLight(LightSource):
     # This function returns the light intensity at a point
     def get_intensity(self, intersection):
         d = self.get_distance_from_light(intersection)
-        return self.intensity / (self.kc + self.kl*d + self.kq * (d**2))
+        return self.intensity / (self.kc + self.kl * d + self.kq * (d ** 2))
 
 
 class SpotLight(LightSource):
@@ -77,13 +77,13 @@ class SpotLight(LightSource):
         return Ray(intersection, normalize(self.position - intersection))
 
     def get_distance_from_light(self, intersection):
-        return np.linalg.norm(intersection - self.position)
+        return np.linalg.norm(self.position - intersection)
 
     def get_intensity(self, intersection):
-        ray = normalize(intersection - self.position)
+        ray = normalize(self.position - intersection)
         d = self.get_distance_from_light(intersection)
         fatt = (self.kq * d**2) + (self.kl * d) + self.kc
-        return self.intensity * (np.dot(self.direction,normalize(ray)) / fatt)
+        return ( self.intensity * (np.dot(self.direction, ray))) / fatt
 
 
 class Object3D:
